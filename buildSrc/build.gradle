@@ -1,0 +1,16 @@
+apply plugin: 'groovy'
+
+repositories {
+    google()
+    jcenter()
+    mavenLocal()
+}
+dependencies {
+    compile 'com.android.tools.build:gradle:3.0.1'
+
+    compile 'com.github.grishberg:android-instrumental-test-runner:0.2.1'
+}
+
+dependencies {
+    compile gradleApi()
+}
