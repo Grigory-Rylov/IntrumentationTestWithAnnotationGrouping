@@ -2,7 +2,7 @@ Usage ```./gradlew clean runTestTask```
 
 Пример использования плагина запуска инструментальных тестов ```com.github.grishberg:android-instrumental-test-runner```
 
-В данном примере имеется рядо тестов, маркерованных аннотациями ```@EspressoTest``` и ```@InstrumentalTest```
+В данном примере имеется ряд тестов, маркерованных аннотациями ```@EspressoTest``` и ```@InstrumentalTest```
 В классе ```CommandsForDeviceProvider``` формируется сценарий запуска тестов: 
     сперва запустятся все тесты с аннотацией ```@EspressoTest```
     затем запустится команда очистки данных
