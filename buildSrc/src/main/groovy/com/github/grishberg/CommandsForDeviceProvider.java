@@ -52,8 +52,10 @@ public class CommandsForDeviceProvider implements DeviceCommandProvider {
         logger.info("planSet.size = {}", planSet.size());
         for (TestPlan currentPlan : planSet) {
             logger.info("   provideDeviceCommands: current plan: {}", currentPlan.getName());
+            logger.info("       Feature: {}", currentPlan.getFeatureParameter());
             for (String currentAnnotation : currentPlan.getAnnotations()) {
                 logger.info("       Annotation: {}", currentAnnotation);
+
                 if (INSTRUMENTAL_ANNOTATION.equals(currentAnnotation)) {
                     instrumentalCommands.add(new SingleInstrumentalTestCommand(project,
                             instrumentationInfo,
