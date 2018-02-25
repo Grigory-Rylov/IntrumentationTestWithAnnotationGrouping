@@ -3,7 +3,7 @@ package com.github.grishberg
 import com.github.grishberg.tests.DefaultInstrumentationArgsProvider
 import com.github.grishberg.tests.InstrumentalPluginExtension
 import com.github.grishberg.tests.InstrumentalTestTask
-
+import com.github.grishberg.tests.InstallApkCommandsProvider
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -14,6 +14,7 @@ class RunTestPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
 
+        InstallApkCommandsProvider installApkCommandsProvider = new InstallApkCommandsProvider(project)
         InstrumentalTestTask instrumentalTestTask = project.tasks.findByName(InstrumentalTestTask.NAME)
         InstrumentalPluginExtension extension = project
                 .getExtensions()
@@ -22,19 +23,15 @@ class RunTestPlugin implements Plugin<Project> {
         /**
          * Setup custom instrumentation test runner.
          */
-
         def runTestTask = project.tasks.create("runTestTask") {
-            dependsOn('installDebug', 'installDebugAndroidTest')
+            dependsOn('assembleDebug', 'assembleDebugAndroidTest')
             finalizedBy instrumentalTestTask
             group 'android'
             doLast {
-                println "-------------------- setup instrumentation tests ------------------"
-                println("----------- ext " + extension)
                 instrumentalTestTask.commandProvider =
                         new CommandsForDeviceProvider(project, extension,
-                                new DefaultInstrumentationArgsProvider())
-                println("-------------------- finish setup instrumentation tests -----------")
-                println("-------------------- EXT: " + extension.applicationId)
+                                new DefaultInstrumentationArgsProvider(),
+                                installApkCommandsProvider.provideInstallApkCommands("debug"))
             }
         }
     }

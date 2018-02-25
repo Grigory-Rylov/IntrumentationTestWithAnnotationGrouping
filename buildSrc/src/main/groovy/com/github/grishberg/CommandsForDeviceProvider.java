@@ -15,6 +15,7 @@ import org.gradle.api.Project;
 import org.gradle.api.logging.Logger;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -27,15 +28,18 @@ public class CommandsForDeviceProvider implements DeviceCommandProvider {
     private final Project project;
     private final InstrumentalPluginExtension instrumentationInfo;
     private final InstrumentationArgsProvider argsProvider;
+    private List<DeviceCommand> prepareCommands;
     private final Logger logger;
 
     public CommandsForDeviceProvider(Project project,
                                      InstrumentalPluginExtension instrumentationInfo,
-                                     InstrumentationArgsProvider argsProvider) {
+                                     InstrumentationArgsProvider argsProvider,
+                                     List<DeviceCommand> prepareCommands) {
         this.project = project;
         logger = project.getLogger();
         this.instrumentationInfo = instrumentationInfo;
         this.argsProvider = argsProvider;
+        this.prepareCommands = prepareCommands;
     }
 
     @Override
@@ -45,8 +49,10 @@ public class CommandsForDeviceProvider implements DeviceCommandProvider {
         ArrayList<DeviceCommand> espressoCommands = new ArrayList<>();
         ArrayList<DeviceCommand> instrumentalCommands = new ArrayList<>();
 
+        espressoCommands.addAll(prepareCommands);
+
         Map<String, String> instrumentalArgs = argsProvider.provideInstrumentationArgs(deviceWrapper);
-        logger.info("[AITR] device={}, args={}",
+        logger.info("[CFDP] device={}, args={}",
                 deviceWrapper.toString(), instrumentalArgs);
         Set<TestPlan> planSet = testPlanProvider.provideTestPlan(deviceWrapper, instrumentalArgs);
         logger.info("planSet.size = {}", planSet.size());
