@@ -1,7 +1,7 @@
 package com.github.grishberg;
 
 import com.github.grishberg.tests.DeviceWrapper;
-import com.github.grishberg.tests.DirectoriesProvider;
+import com.github.grishberg.tests.Environment;
 import com.github.grishberg.tests.InstrumentalPluginExtension;
 import com.github.grishberg.tests.InstrumentationArgsProvider;
 import com.github.grishberg.tests.commands.ClearCommand;
@@ -24,7 +24,7 @@ import java.util.Set;
  */
 public class CommandsForDeviceProvider implements DeviceCommandProvider {
     private static final String INSTRUMENTAL_ANNOTATION = "com.github.grishberg.instrumentaltestwithtestgroupsordering.InstrumentalTest";
-    private static final String ESPRESSO_ANNOTAION = "com.github.grishberg.instrumentaltestwithtestgroupsordering.EspressoTest";
+    private static final String ESPRESSO_ANNOTATION = "com.github.grishberg.instrumentaltestwithtestgroupsordering.EspressoTest";
     private final Project project;
     private final InstrumentalPluginExtension instrumentationInfo;
     private final InstrumentationArgsProvider argsProvider;
@@ -45,15 +45,14 @@ public class CommandsForDeviceProvider implements DeviceCommandProvider {
     @Override
     public DeviceCommand[] provideDeviceCommands(DeviceWrapper deviceWrapper,
                                                  InstrumentalTestPlanProvider testPlanProvider,
-                                                 DirectoriesProvider directoriesProvider) {
+                                                 Environment directoriesProvider) {
         ArrayList<DeviceCommand> espressoCommands = new ArrayList<>();
         ArrayList<DeviceCommand> instrumentalCommands = new ArrayList<>();
 
         espressoCommands.addAll(prepareCommands);
 
         Map<String, String> instrumentalArgs = argsProvider.provideInstrumentationArgs(deviceWrapper);
-        logger.info("[CFDP] device={}, args={}",
-                deviceWrapper.toString(), instrumentalArgs);
+        logger.info("[CFDP] device={}, args={}", deviceWrapper, instrumentalArgs);
         Set<TestPlan> planSet = testPlanProvider.provideTestPlan(deviceWrapper, instrumentalArgs);
         logger.info("planSet.size = {}", planSet.size());
         for (TestPlan currentPlan : planSet) {
@@ -66,14 +65,18 @@ public class CommandsForDeviceProvider implements DeviceCommandProvider {
                     instrumentalCommands.add(new SingleInstrumentalTestCommand(project,
                             instrumentationInfo,
                             instrumentalArgs,
-                            currentPlan));
+                            currentPlan,
+                            directoriesProvider.getCoverageDir(),
+                            directoriesProvider.getResultsDir()));
                     break;
                 }
-                if (ESPRESSO_ANNOTAION.equals(currentAnnotation)) {
+                if (ESPRESSO_ANNOTATION.equals(currentAnnotation)) {
                     espressoCommands.add(new SingleInstrumentalTestCommand(project,
                             instrumentationInfo,
                             instrumentalArgs,
-                            currentPlan));
+                            currentPlan,
+                            directoriesProvider.getCoverageDir(),
+                            directoriesProvider.getResultsDir()));
                     break;
                 }
             }

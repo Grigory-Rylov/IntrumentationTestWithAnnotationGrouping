@@ -3,4 +3,5 @@ instrumentalPluginConfig {
     applicationId = "com.github.grishberg.instrumentaltestwithtestgroupsordering"
     instrumentalPackage = "com.github.grishberg.instrumentaltestwithtestgroupsordering.test"
     instrumentalRunner = "android.support.test.runner.AndroidJUnitRunner"
+    coverageEnabled = true
 }

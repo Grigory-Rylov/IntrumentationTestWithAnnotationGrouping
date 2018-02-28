@@ -28,6 +28,12 @@ class RunTestPlugin implements Plugin<Project> {
             finalizedBy instrumentalTestTask
             group 'android'
             doLast {
+                File resultsDir = new File(project.getBuildDir(), "results")
+                File coverageDir = new File(project.getBuildDir(), "coverage")
+                File reportsDir = new File(project.getBuildDir(), "reports")
+                instrumentalTestTask.setResultsDir(resultsDir)
+                instrumentalTestTask.setCoverageDir(coverageDir)
+                instrumentalTestTask.setReportsDir(reportsDir)
                 instrumentalTestTask.commandProvider =
                         new CommandsForDeviceProvider(project, extension,
                                 new DefaultInstrumentationArgsProvider(),
