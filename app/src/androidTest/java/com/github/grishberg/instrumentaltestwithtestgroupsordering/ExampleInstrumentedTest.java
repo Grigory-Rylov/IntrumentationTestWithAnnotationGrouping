@@ -2,10 +2,13 @@ package com.github.grishberg.instrumentaltestwithtestgroupsordering;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
+import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
 import com.github.grishberg.annotaions.Feature;
 
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -18,6 +21,13 @@ import static org.junit.Assert.*;
  */
 @RunWith(AndroidJUnit4.class)
 public class ExampleInstrumentedTest {
+    @Rule
+    public ActivityTestRule<MainActivity> mActivityRule = new ActivityTestRule<>(MainActivity.class);
+
+    @Before
+    public void setUp() throws Exception {
+        mActivityRule.getActivity();
+    }
 
     @Feature(param = "+feature2?param1=enabled&param2=enabled&param3=1")
     @InstrumentalTest
