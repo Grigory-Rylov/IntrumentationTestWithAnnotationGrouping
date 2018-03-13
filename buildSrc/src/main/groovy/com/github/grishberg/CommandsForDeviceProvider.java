@@ -10,9 +10,9 @@ import com.github.grishberg.tests.commands.DeviceRunnerCommandProvider;
 import com.github.grishberg.tests.commands.SingleInstrumentalTestCommand;
 import com.github.grishberg.tests.planner.InstrumentalTestPlanProvider;
 import com.github.grishberg.tests.planner.parser.TestPlan;
+import com.github.grishberg.tests.common.RunnerLogger;
 
 import org.gradle.api.Project;
-import org.gradle.api.logging.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,23 +22,25 @@ import java.util.Map;
  * Provides test commands for executing on target device.
  */
 public class CommandsForDeviceProvider implements DeviceRunnerCommandProvider {
+    private static final String TAG = "CFDP";
     private static final String INSTRUMENTAL_ANNOTATION = "com.github.grishberg.instrumentaltestwithtestgroupsordering.InstrumentalTest";
     private static final String ESPRESSO_ANNOTATION = "com.github.grishberg.instrumentaltestwithtestgroupsordering.EspressoTest";
     private final Project project;
     private final InstrumentalPluginExtension instrumentationInfo;
     private final InstrumentationArgsProvider argsProvider;
     private List<DeviceRunnerCommand> prepareCommands;
-    private final Logger logger;
+    private final RunnerLogger logger;
 
     public CommandsForDeviceProvider(Project project,
                                      InstrumentalPluginExtension instrumentationInfo,
                                      InstrumentationArgsProvider argsProvider,
-                                     List<DeviceRunnerCommand> prepareCommands) {
+                                     List<DeviceRunnerCommand> prepareCommands,
+                                     RunnerLogger logger) {
         this.project = project;
-        logger = project.getLogger();
         this.instrumentationInfo = instrumentationInfo;
         this.argsProvider = argsProvider;
         this.prepareCommands = prepareCommands;
+        this.logger = logger;
     }
 
     @Override
@@ -51,14 +53,14 @@ public class CommandsForDeviceProvider implements DeviceRunnerCommandProvider {
         ArrayList<TestPlan> simplePlan = new ArrayList<>();
 
         Map<String, String> instrumentalArgs = argsProvider.provideInstrumentationArgs(deviceWrapper);
-        logger.info("[CFDP] device={}, args={}", deviceWrapper, instrumentalArgs);
+        logger.i(TAG, "device = %s, args = %s", deviceWrapper, instrumentalArgs);
         List<TestPlan> planSet = testPlanProvider.provideTestPlan(deviceWrapper, instrumentalArgs);
-        logger.info("planSet.size = {}", planSet.size());
+        logger.i(TAG, "planSet.size = %s", planSet.size());
         for (TestPlan currentPlan : planSet) {
-            logger.info("   provideDeviceCommands: current plan: {}", currentPlan.toString());
-            logger.info("       Feature: {}", currentPlan.getFeatureParameter());
+            logger.i(TAG, "   provideDeviceCommands: current plan: %s", currentPlan.toString());
+            logger.i(TAG, "       Feature: %s", currentPlan.getFeatureParameter());
             for (String currentAnnotation : currentPlan.getAnnotations()) {
-                logger.info("       Annotation: {}", currentAnnotation);
+                logger.i(TAG, "       Annotation: %s", currentAnnotation);
 
                 if (INSTRUMENTAL_ANNOTATION.equals(currentAnnotation)) {
                     espressoPlan.add(currentPlan);
@@ -77,25 +79,27 @@ public class CommandsForDeviceProvider implements DeviceRunnerCommandProvider {
                 instrumentalArgs,
                 espressoPlan,
                 directoriesProvider.getCoverageDir(),
-                directoriesProvider.getResultsDir()));
-        commands.add(new ClearCommand(logger, instrumentationInfo));
+                directoriesProvider.getResultsDir(),
+                logger));
+        commands.add(new ClearCommand(project.getLogger(), instrumentationInfo));
         commands.add(new SingleInstrumentalTestCommand(project,
                 "instrumental_tests",
                 instrumentationInfo,
                 instrumentalArgs,
                 instrumentalPlan,
                 directoriesProvider.getCoverageDir(),
-                directoriesProvider.getResultsDir()));
-        commands.add(new ClearCommand(logger, instrumentationInfo));
+                directoriesProvider.getResultsDir(),
+                logger));
         commands.add(new SingleInstrumentalTestCommand(project,
                 "simple_tests",
                 instrumentationInfo,
                 instrumentalArgs,
                 simplePlan,
                 directoriesProvider.getCoverageDir(),
-                directoriesProvider.getResultsDir()));
-        logger.info("---------------------- espressoCommands size = {}-------------", commands.size());
-        logger.info("---------------------- espressoCommands = {}-------------", commands);
+                directoriesProvider.getResultsDir(),
+                logger));
+        logger.i(TAG, "---------------------- espressoCommands size = %s-------------", commands.size());
+        logger.i(TAG, "---------------------- espressoCommands = %s -------------", commands);
         return commands.toArray(new DeviceRunnerCommand[commands.size()]);
     }
 }

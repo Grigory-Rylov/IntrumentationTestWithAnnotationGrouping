@@ -4,6 +4,7 @@ import com.github.grishberg.tests.DefaultInstrumentationArgsProvider
 import com.github.grishberg.tests.InstrumentalPluginExtension
 import com.github.grishberg.tests.InstrumentationTestTask
 import com.github.grishberg.tests.InstallApkCommandsProvider
+import com.github.grishberg.tests.common.FileLogger
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -28,15 +29,17 @@ class RunTestPlugin implements Plugin<Project> {
             finalizedBy instrumentalTestTask
             group 'android'
             doLast {
+                FileLogger logger = new FileLogger(project)
                 File resultsDir = new File(project.getBuildDir(), "results")
                 File coverageDir = new File(project.getBuildDir(), "coverage")
                 File reportsDir = new File(project.getBuildDir(), "reports")
                 instrumentalTestTask.setResultsDir(resultsDir)
                 instrumentalTestTask.setCoverageDir(coverageDir)
                 instrumentalTestTask.setReportsDir(reportsDir)
+                instrumentalTestTask.setRunnerLogger(logger)
                 instrumentalTestTask.commandProvider =
                         new CommandsForDeviceProvider(project, extension,
-                                new DefaultInstrumentationArgsProvider(), [])
+                                new DefaultInstrumentationArgsProvider(), [], logger)
             }
         }
     }
