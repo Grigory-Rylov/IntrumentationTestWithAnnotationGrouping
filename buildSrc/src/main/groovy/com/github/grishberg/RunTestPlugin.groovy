@@ -29,7 +29,7 @@ class RunTestPlugin implements Plugin<Project> {
             finalizedBy instrumentalTestTask
             group 'android'
             doLast {
-                FileLogger logger = new FileLogger(project)
+                FileLogger logger = new FileLogger(project, "instrumental_runner.log")
                 File resultsDir = new File(project.getBuildDir(), "results")
                 File coverageDir = new File(project.getBuildDir(), "coverage")
                 File reportsDir = new File(project.getBuildDir(), "reports")
