@@ -8,13 +8,16 @@ import com.github.grishberg.tests.commands.ClearCommand;
 import com.github.grishberg.tests.commands.DeviceRunnerCommand;
 import com.github.grishberg.tests.commands.DeviceRunnerCommandProvider;
 import com.github.grishberg.tests.commands.SingleInstrumentalTestCommand;
+import com.github.grishberg.tests.planner.InstrumentalTestHolder;
 import com.github.grishberg.tests.planner.InstrumentalTestPlanProvider;
+import com.github.grishberg.tests.planner.TestNodeElement;
 import com.github.grishberg.tests.planner.parser.TestPlan;
 import com.github.grishberg.tests.common.RunnerLogger;
 
 import org.gradle.api.Project;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -54,9 +57,16 @@ public class CommandsForDeviceProvider implements DeviceRunnerCommandProvider {
 
         Map<String, String> instrumentalArgs = argsProvider.provideInstrumentationArgs(deviceWrapper);
         logger.i(TAG, "device = %s, args = %s", deviceWrapper, instrumentalArgs);
-        List<TestPlan> planSet = testPlanProvider.provideTestPlan(deviceWrapper, instrumentalArgs);
-        logger.i(TAG, "planSet.size = %s", planSet.size());
-        for (TestPlan currentPlan : planSet) {
+
+        InstrumentalTestHolder testHolder = testPlanProvider.provideInstrumentalTests(deviceWrapper, instrumentalArgs);
+
+        // filter test with annotations
+        Iterator<TestNodeElement> planSet = testHolder.provideTestNodeElementsIterator();
+
+        while (planSet.hasNext()) {
+            TestNodeElement currentTestNode = planSet.next();
+            TestPlan currentPlan = currentTestNode.getTestPlan();
+
             logger.i(TAG, "   provideDeviceCommands: current plan: %s", currentPlan.toString());
             logger.i(TAG, "       Feature: %s", currentPlan.getFeatureParameter());
             for (String currentAnnotation : currentPlan.getAnnotations()) {
@@ -64,15 +74,19 @@ public class CommandsForDeviceProvider implements DeviceRunnerCommandProvider {
 
                 if (INSTRUMENTAL_ANNOTATION.equals(currentAnnotation)) {
                     espressoPlan.add(currentPlan);
+                    currentTestNode.exclude();
                     break;
                 }
                 if (ESPRESSO_ANNOTATION.equals(currentAnnotation)) {
                     instrumentalPlan.add(currentPlan);
+                    currentTestNode.exclude();
                     break;
                 }
                 simplePlan.add(currentPlan);
             }
         }
+
+
         commands.add(new SingleInstrumentalTestCommand(project,
                 "espresso_tests",
                 instrumentationInfo,
@@ -81,7 +95,7 @@ public class CommandsForDeviceProvider implements DeviceRunnerCommandProvider {
                 directoriesProvider.getCoverageDir(),
                 directoriesProvider.getResultsDir(),
                 logger));
-        commands.add(new ClearCommand(project.getLogger(), instrumentationInfo));
+
         commands.add(new SingleInstrumentalTestCommand(project,
                 "instrumental_tests",
                 instrumentationInfo,
@@ -90,11 +104,13 @@ public class CommandsForDeviceProvider implements DeviceRunnerCommandProvider {
                 directoriesProvider.getCoverageDir(),
                 directoriesProvider.getResultsDir(),
                 logger));
+
+        // all not excluded tests returns with testHolder.provideCompoundTestPlan();
         commands.add(new SingleInstrumentalTestCommand(project,
                 "simple_tests",
                 instrumentationInfo,
                 instrumentalArgs,
-                simplePlan,
+                testHolder.provideCompoundTestPlan(),
                 directoriesProvider.getCoverageDir(),
                 directoriesProvider.getResultsDir(),
                 logger));

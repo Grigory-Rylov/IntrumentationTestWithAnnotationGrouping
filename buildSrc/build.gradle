@@ -10,7 +10,7 @@ repositories {
 dependencies {
     compile 'com.android.tools.build:gradle:3.0.1'
 
-    compile 'com.github.grishberg:android-instrumental-test-runner:0.5.10'
+    compile 'com.github.grishberg:android-instrumental-test-runner:0.6.1'
 }
 
 dependencies {
